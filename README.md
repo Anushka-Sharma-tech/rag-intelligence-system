@@ -25,28 +25,214 @@
 Built for maximum privacy and ultra-low latency. The architecture deliberately decouples the embedding layer from the generation layer—offloading heavy semantic chunking to a local vector engine, while routing prompts to Groq’s specialized LPU silicon for sub-second text generation.
 
 
+<br/>
+
+<div align="center">
 
 <table>
-  <tr>
-    <td align="center" width="33%">
-      <h3>1. Input Layer</h3>
-      <p><b>User / Next.js Frontend</b></p>
-      <p>Uploads documents and asks questions through the web interface.</p>
-    </td>
-    <td align="center" width="33%">
-      <h3>2. Backend Layer</h3>
-      <p><b>FastAPI Backend</b></p>
-      <p>Handles uploads, document parsing, queries, and API orchestration.</p>
-    </td>
-    <td align="center" width="33%">
-      <h3>3. Intelligence Layer</h3>
-      <p><b>Embeddings + Retrieval + LLM</b></p>
-      <p>Finds relevant context and generates grounded answers.</p>
-    </td>
-  </tr>
+<tr>
+<td align="center">
+
+### User / Next.js Frontend
+
+Uploads documents, asks questions, and receives cited answers.
+
+</td>
+</tr>
 </table>
 
+<br/>
+
+**Upload Document / Ask Question**
+
+<br/>
+
+<table>
+<tr>
+<td align="center">
+
+### FastAPI Backend
+
+Central API layer that manages document ingestion, query handling, retrieval, and LLM orchestration.
+
+</td>
+</tr>
+</table>
+
+</div>
+
 ---
+
+## Offline Ingestion Pipeline
+
+<div align="center">
+
+<table>
+<tr>
+<td align="center">
+
+### 1. Document Upload
+
+The user uploads a PDF, text file, or document through the Next.js frontend.
+
+</td>
+</tr>
+<tr>
+<td align="center">
+
+### 2. FastAPI Processing
+
+The backend receives the file, extracts text, cleans the content, and prepares it for indexing.
+
+</td>
+</tr>
+<tr>
+<td align="center">
+
+### 3. Semantic Chunking
+
+The document is split into meaningful chunks so retrieval works on focused sections instead of entire files.
+
+</td>
+</tr>
+<tr>
+<td align="center">
+
+### 4. SentenceTransformers
+
+Each chunk is converted into a `384-dimensional` vector using `all-MiniLM-L6-v2`.
+
+</td>
+</tr>
+<tr>
+<td align="center">
+
+### 5. ChromaDB Vector Store
+
+The embeddings are stored locally in ChromaDB for fast similarity search.
+
+</td>
+</tr>
+</table>
+
+</div>
+
+---
+
+## High-Speed Retrieval Pipeline
+
+<div align="center">
+
+<table>
+<tr>
+<td align="center">
+
+### 1. User Question
+
+The user asks a question from the frontend interface.
+
+</td>
+</tr>
+<tr>
+<td align="center">
+
+### 2. Query Embedding
+
+The question is converted into a semantic vector using the same SentenceTransformers model.
+
+</td>
+</tr>
+<tr>
+<td align="center">
+
+### 3. Similarity Search
+
+ChromaDB compares the query vector against stored document vectors.
+
+</td>
+</tr>
+<tr>
+<td align="center">
+
+### 4. Top-K Context Retrieval
+
+The most relevant chunks are returned to the backend as grounded context.
+
+</td>
+</tr>
+<tr>
+<td align="center">
+
+### 5. Groq API Generation
+
+The backend sends the question and retrieved context to `Llama 3.1 8B` through the Groq API.
+
+</td>
+</tr>
+<tr>
+<td align="center">
+
+### 6. Final Answer With Citations
+
+The frontend receives a synthesized answer with supporting document references.
+
+</td>
+</tr>
+</table>
+
+</div>
+
+---
+
+## End-to-End Flow
+
+```txt
+User / Next.js Frontend
+        |
+        | Upload Document
+        v
+FastAPI Backend
+        |
+        | Semantic Chunking
+        v
+SentenceTransformers all-MiniLM-L6-v2
+        |
+        | 384-Dimensional Embeddings
+        v
+ChromaDB Local Vector Store
+
+
+User / Next.js Frontend
+        |
+        | Ask Question
+        v
+FastAPI Backend
+        |
+        | Query Embedding
+        v
+SentenceTransformers all-MiniLM-L6-v2
+        |
+        | Similarity Search
+        v
+ChromaDB Local Vector Store
+        |
+        | Return Top-K Context
+        v
+FastAPI Backend
+        |
+        | Prompt + Context
+        v
+Groq API / Llama 3.1 8B
+        |
+        | Synthesized Answer
+        v
+FastAPI Backend
+        |
+        | Response + Citations
+        v
+User / Next.js Frontend
+
+
 ## 💻 Core Stack Matrix
 
 | Layer                | Technologies                                  |
