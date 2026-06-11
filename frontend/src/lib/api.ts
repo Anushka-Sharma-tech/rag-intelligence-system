@@ -1,4 +1,5 @@
-const BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+// Delete the old BASE line and replace it with this exact string:
+const BASE = "http://127.0.0.1:8000";
 
 export async function uploadFile(file: File) {
   const form = new FormData();
