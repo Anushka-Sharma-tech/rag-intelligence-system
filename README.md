@@ -24,30 +24,34 @@
 
 Built for maximum privacy and ultra-low latency. The architecture deliberately decouples the embedding layer from the generation layer—offloading heavy semantic chunking to a local vector engine, while routing prompts to Groq’s specialized LPU silicon for sub-second text generation.
 
-
 ```mermaid
-graph TD
+flowchart TB
 
-    A["User / Next.js Frontend"] -->|Upload Document| B["FastAPI Backend"]
+    A[User]
+
+    B[FastAPI Backend]
+
+    C[MiniLM Embeddings]
+
+    D[(ChromaDB)]
+
+    E[Groq Llama 3.1]
+
+    A -->|Upload PDF| B
     A -->|Ask Question| B
 
-    subgraph "Offline Ingestion Pipeline"
-        B -->|Semantic Chunking| C["SentenceTransformers<br/>all-MiniLM-L6-v2"]
-        C -->|Store 384-Dimensional Vectors| D[("ChromaDB")]
-    end
+    B -->|Chunk Document| C
+    C -->|Store Vectors| D
 
-    subgraph "High-Speed Retrieval Pipeline"
-        B -->|Query Embedding| C
-        C -->|Similarity Search| D
-        D -->|Return Top-K Context| B
-        B -->|Prompt + Context| E["Groq API<br/>Llama 3.1 8B"]
-        E -->|Synthesized Answer| B
-    end
+    B -->|Embed Query| C
+    C -->|Search| D
+    D -->|Top-K Chunks| B
+
+    B -->|Context + Prompt| E
+    E -->|Answer| B
 
     B -->|Response + Citations| A
 ```
-
-
 
 ## 💻 Core Stack Matrix
 
