@@ -1,7 +1,7 @@
 # 🧠 RAG Intelligence System
 
 > **Enterprise-Grade Knowledge Retrieval Engine**
-> A multi-document AI ecosystem engineered to parse complex documents, evaluate context matching metrics, and deliver deterministic answers paired with granular source citations—at zero API embedding cost.
+> An offline-first, high-performance Retrieval-Augmented Generation (RAG) pipeline. This system ingests complex documents, executes local semantic search, and leverages LPU-accelerated inference to deliver deterministic answers with granular source citations—all with zero API cost for vectorization.
 
 ![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
 ![Python](https://img.shields.io/badge/python-3.11%2B-blue)
@@ -12,26 +12,28 @@
 
 ## 🔥 Key Capabilities
 
-* **Hybrid Ingestion Pipeline** — Native processing primitives for complex PDFs and document frameworks.
-* **Zero-Cost Local Vectorization** — Utilizes `all-MiniLM-L6-v2` to vectorize documents entirely on-device, ensuring absolute data privacy and zero API overhead.
-* **Deterministic Citations** — Maps generative model assertions directly back to source document chunks with exact cross-referencing (Document Name + Page Number).
-* **Confidence Scoring Engine** — Semantic evaluation architecture providing an instant metric response layout (High | Medium | Low) based on Euclidean/Cosine distance.
-* **Comparative Workspace** — Dual-pane execution analysis synthesizing contrasting information from two distinct data sources against a uniform query block.
+* **Intelligent Ingestion Pipeline** — Robust processing capabilities for complex PDFs and document frameworks, featuring localized semantic chunking.
+* **Zero-Cost Local Vectorization** — Embeds documents entirely on-device using CPU-optimized `all-MiniLM-L6-v2` models, ensuring 100% data privacy and eliminating external API overhead.
+* **Verifiable Citations** — Programmatically combats LLM hallucinations by mapping generated assertions directly back to the exact source document, paragraph, and page number.
+* **Contextual Confidence Meter** — Calculates real-time semantic distances (Euclidean/Cosine) to provide users with transparent retrieval confidence scores (High | Medium | Low).
+* **Multi-Document Synthesis** — Natively queries across multiple data sources simultaneously to compare, contrast, and synthesize conflicting information into a unified response.
 
 ---
 
 ## 🏗 Architectural Blueprint
 
-The system is designed for maximum privacy and high-speed inference. It offloads heavy semantic chunking to a local CPU-optimized embedding model while leveraging Groq's specialized LPU silicon for near-instant text generation.
+Built for maximum privacy and ultra-low latency. The architecture deliberately decouples the embedding layer from the generation layer—offloading heavy semantic chunking to a local vector engine, while routing prompts to Groq’s specialized LPU silicon for sub-second text generation.
+
 
 ```mermaid
 graph TD
-    A[User / Next.js Frontend] -->|Upload Document| B(FastAPI Backend)
+
+    A["User / Next.js Frontend"] -->|Upload Document| B["FastAPI Backend"]
     A -->|Ask Question| B
 
     subgraph "Offline Ingestion Pipeline"
         B -->|Semantic Chunking| C["SentenceTransformers<br/>all-MiniLM-L6-v2"]
-        C -->|Store 384d Vectors| D[(ChromaDB)]
+        C -->|Store 384-Dimensional Vectors| D[("ChromaDB")]
     end
 
     subgraph "High-Speed Retrieval Pipeline"
@@ -45,7 +47,7 @@ graph TD
     B -->|Response + Citations| A
 ```
 
----
+
 
 ## 💻 Core Stack Matrix
 
