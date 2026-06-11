@@ -6,7 +6,11 @@ from app.services.embeddings import create_query_embedding
 from app.services.scoring import calculate_confidence, distance_to_similarity
 from app.models.schemas import QueryResponse, CitedChunk, CompareResponse
 
-client = OpenAI(api_key=settings.openai_api_key)
+# 🚀 SENIOR FIX: Pull the keys directly from your secured Pydantic settings
+client = OpenAI(
+    api_key=settings.groq_api_key,
+    base_url="https://api.groq.com/openai/v1"
+)
 
 def build_rag_prompt(question: str, chunks: List[str], metadatas: List[dict], distances: List[float]) -> str:
     """Build the prompt that gets sent to the LLM with retrieved context."""
