@@ -24,49 +24,29 @@
 
 Built for maximum privacy and ultra-low latency. The architecture deliberately decouples the embedding layer from the generation layer—offloading heavy semantic chunking to a local vector engine, while routing prompts to Groq’s specialized LPU silicon for sub-second text generation.
 
-```mermaid
-flowchart TD
-    A["User<br/>Next.js Frontend"]
-    B["FastAPI<br/>Backend"]
-
-    A -->|"Upload<br/>Document"| B
-    A -->|"Ask<br/>Question"| B
-
-    subgraph S1["Offline Ingestion Pipeline"]
-        direction TD
-        C["Semantic<br/>Chunking"]
-        D["SentenceTransformers<br/>all-MiniLM-L6-v2"]
-        E[("ChromaDB<br/>384-D Vectors")]
-
-        B --> C
-        C --> D
-        D --> E
-    end
-
-    subgraph S2["High-Speed Retrieval Pipeline"]
-        direction TD
-        F["Query<br/>Embedding"]
-        G["Similarity<br/>Search"]
-        H["Top-K<br/>Context"]
-        I["Groq API<br/>Llama 3.1 8B"]
-        J["Synthesized<br/>Answer"]
-
-        B --> F
-        F --> D
-        D --> G
-        G --> E
-        E --> H
-        H --> B
-        B -->|"Prompt + Context"| I
-        I --> J
-        J --> B
-    end
-
-    B -->|"Response<br/>+ Citations"| A
-```
 
 
+<table>
+  <tr>
+    <td align="center" width="33%">
+      <h3>1. Input Layer</h3>
+      <p><b>User / Next.js Frontend</b></p>
+      <p>Uploads documents and asks questions through the web interface.</p>
+    </td>
+    <td align="center" width="33%">
+      <h3>2. Backend Layer</h3>
+      <p><b>FastAPI Backend</b></p>
+      <p>Handles uploads, document parsing, queries, and API orchestration.</p>
+    </td>
+    <td align="center" width="33%">
+      <h3>3. Intelligence Layer</h3>
+      <p><b>Embeddings + Retrieval + LLM</b></p>
+      <p>Finds relevant context and generates grounded answers.</p>
+    </td>
+  </tr>
+</table>
 
+---
 ## 💻 Core Stack Matrix
 
 | Layer                | Technologies                                  |
