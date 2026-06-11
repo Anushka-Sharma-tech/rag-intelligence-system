@@ -8,11 +8,12 @@ app = FastAPI(
     version="1.0.0"
 )
 
+# Added both local variations to make it bulletproof
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:3000",
-        "https://*.vercel.app"    # Update with your exact Vercel URL after deploy
+        "http://127.0.0.1:3000"
     ],
     allow_credentials=True,
     allow_methods=["*"],
