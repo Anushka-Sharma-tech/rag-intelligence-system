@@ -3,6 +3,8 @@
 > **Enterprise-Grade Knowledge Retrieval Engine**
 > An offline-first, high-performance Retrieval-Augmented Generation (RAG) pipeline. This system ingests complex documents, executes local semantic search, and leverages LPU-accelerated inference to deliver deterministic answers with granular source citations—all with zero API cost for vectorization.
 
+🚀 **Live Demo:** [rag-intelligence-system.vercel.app](https://rag-intelligence-system.vercel.app)
+
 ![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
 ![Python](https://img.shields.io/badge/python-3.11%2B-blue)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.100%2B-green)
