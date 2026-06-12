@@ -1,4 +1,4 @@
-from openai import OpenAI
+import requests
 from typing import List, Optional
 from app.config import settings
 from app.services.vectorstore import vector_store
@@ -6,15 +6,28 @@ from app.services.embeddings import create_query_embedding
 from app.services.scoring import calculate_confidence, distance_to_similarity
 from app.models.schemas import QueryResponse, CitedChunk, CompareResponse
 
-# 🚀 SENIOR FIX: Pull the keys directly from your secured Pydantic settings
-def get_groq_client() -> OpenAI:
-    """Create the Groq-compatible OpenAI client only when an LLM call is needed."""
+def create_chat_completion(messages: List[dict], temperature: float, max_tokens: int) -> str:
+    """Call Groq's OpenAI-compatible chat completions API without the OpenAI SDK."""
     if not settings.groq_api_key:
         raise RuntimeError("GROQ_API_KEY is not configured")
-    return OpenAI(
-        api_key=settings.groq_api_key,
-        base_url="https://api.groq.com/openai/v1",
+
+    response = requests.post(
+        "https://api.groq.com/openai/v1/chat/completions",
+        headers={
+            "Authorization": f"Bearer {settings.groq_api_key}",
+            "Content-Type": "application/json",
+        },
+        json={
+            "model": settings.llm_model,
+            "messages": messages,
+            "temperature": temperature,
+            "max_tokens": max_tokens,
+        },
+        timeout=60,
     )
+    response.raise_for_status()
+    data = response.json()
+    return data["choices"][0]["message"]["content"]
 
 def build_rag_prompt(question: str, chunks: List[str], metadatas: List[dict], distances: List[float]) -> str:
     """Build the prompt that gets sent to the LLM with retrieved context."""
@@ -65,14 +78,11 @@ def query_documents(
         )
         
     prompt = build_rag_prompt(question, chunks, metadatas, distances)
-    response = get_groq_client().chat.completions.create(
-        model=settings.llm_model,
+    answer = create_chat_completion(
         messages=[{"role": "user", "content": prompt}],
-        temperature=0.1,   # Low temp = factual, deterministic answers
-        max_tokens=1200
+        temperature=0.1,
+        max_tokens=1200,
     )
-    
-    answer = response.choices[0].message.content
     cited_chunks = [
         CitedChunk(
             content=chunk[:300] + "..." if len(chunk) > 300 else chunk,
@@ -104,14 +114,13 @@ def _get_single_doc_answer(question: str, doc_id: str) -> tuple[str, str]:
         return "No relevant content found in this document.", doc_id
         
     prompt = build_rag_prompt(question, chunks, metadatas, distances)
-    response = get_groq_client().chat.completions.create(
-        model=settings.llm_model,
+    answer = create_chat_completion(
         messages=[{"role": "user", "content": prompt}],
         temperature=0.1,
-        max_tokens=600
+        max_tokens=600,
     )
     source_name = metadatas[0].get("source", doc_id) if metadatas else doc_id
-    return response.choices[0].message.content, source_name
+    return answer, source_name
 
 def compare_documents(question: str, doc_id_1: str, doc_id_2: str) -> CompareResponse:
     """Answer the same question from two docs and synthesize the difference."""
@@ -125,17 +134,16 @@ Document 2 ({name2}): {answer2}
 
 In 3-4 sentences: what do they agree on, what differs, and which provides more detail?"""
 
-    synthesis_response = get_groq_client().chat.completions.create(
-        model=settings.llm_model,
+    synthesis = create_chat_completion(
         messages=[{"role": "user", "content": synthesis_prompt}],
         temperature=0.3,
-        max_tokens=300
+        max_tokens=300,
     )
     
     return CompareResponse(
         doc1_answer=answer1,
         doc2_answer=answer2,
-        synthesis=synthesis_response.choices[0].message.content,
+        synthesis=synthesis,
         doc1_name=name1,
         doc2_name=name2
     )
