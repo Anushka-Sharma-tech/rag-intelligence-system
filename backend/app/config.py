@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     top_k_results: int = 5
 
     # API Keys
-    groq_api_key: str
+    GROQ_API_KEY: str = "placeholder_key"
     openai_api_key: Optional[str] = None  # Made optional to prevent crashes
 
     # Modern Pydantic V2 config: reads the .env file and safely ignores extra variables
