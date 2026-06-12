@@ -7,10 +7,14 @@ from app.services.scoring import calculate_confidence, distance_to_similarity
 from app.models.schemas import QueryResponse, CitedChunk, CompareResponse
 
 # 🚀 SENIOR FIX: Pull the keys directly from your secured Pydantic settings
-client = OpenAI(
-    api_key=settings.groq_api_key,
-    base_url="https://api.groq.com/openai/v1"
-)
+def get_groq_client() -> OpenAI:
+    """Create the Groq-compatible OpenAI client only when an LLM call is needed."""
+    if not settings.groq_api_key:
+        raise RuntimeError("GROQ_API_KEY is not configured")
+    return OpenAI(
+        api_key=settings.groq_api_key,
+        base_url="https://api.groq.com/openai/v1",
+    )
 
 def build_rag_prompt(question: str, chunks: List[str], metadatas: List[dict], distances: List[float]) -> str:
     """Build the prompt that gets sent to the LLM with retrieved context."""
@@ -61,7 +65,7 @@ def query_documents(
         )
         
     prompt = build_rag_prompt(question, chunks, metadatas, distances)
-    response = client.chat.completions.create(
+    response = get_groq_client().chat.completions.create(
         model=settings.llm_model,
         messages=[{"role": "user", "content": prompt}],
         temperature=0.1,   # Low temp = factual, deterministic answers
@@ -100,7 +104,7 @@ def _get_single_doc_answer(question: str, doc_id: str) -> tuple[str, str]:
         return "No relevant content found in this document.", doc_id
         
     prompt = build_rag_prompt(question, chunks, metadatas, distances)
-    response = client.chat.completions.create(
+    response = get_groq_client().chat.completions.create(
         model=settings.llm_model,
         messages=[{"role": "user", "content": prompt}],
         temperature=0.1,
@@ -121,7 +125,7 @@ Document 2 ({name2}): {answer2}
 
 In 3-4 sentences: what do they agree on, what differs, and which provides more detail?"""
 
-    synthesis_response = client.chat.completions.create(
+    synthesis_response = get_groq_client().chat.completions.create(
         model=settings.llm_model,
         messages=[{"role": "user", "content": synthesis_prompt}],
         temperature=0.3,
