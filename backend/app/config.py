@@ -11,10 +11,14 @@ class Settings(BaseSettings):
     top_k_results: int = 5
 
     # API Keys
-    GROQ_API_KEY: str = "placeholder_key"
+    groq_api_key: Optional[str] = None
     openai_api_key: Optional[str] = None  # Made optional to prevent crashes
 
     # Modern Pydantic V2 config: reads the .env file and safely ignores extra variables
-    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        extra="ignore",
+        case_sensitive=False,
+    )
 
 settings = Settings()
