@@ -18,7 +18,18 @@ async function fetchJson<T>(path: string, init?: RequestInit): Promise<T> {
   }
 
   if (!res.ok) {
-    const message = await res.text();
+    const body = await res.text();
+    let message = body;
+
+    try {
+      const parsed = JSON.parse(body) as { detail?: unknown };
+      if (typeof parsed.detail === "string") {
+        message = parsed.detail;
+      }
+    } catch {
+      // Keep the raw response body when it is not JSON.
+    }
+
     throw new Error(message || `Request failed: ${res.status}`);
   }
 
