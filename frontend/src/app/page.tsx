@@ -12,13 +12,17 @@ export default function Home() {
   const [documents, setDocuments] = useState<DocumentInfo[]>([]);
   const [selectedDocIds, setSelectedDocIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const [inventoryError, setInventoryError] = useState<string | null>(null);
 
   const fetchInventory = async () => {
     try {
+      setInventoryError(null);
       const data = await getDocuments();
       setDocuments(data);
     } catch (err) {
-      console.error("Failed to sync backend document inventory:", err);
+      setInventoryError(
+        err instanceof Error ? err.message : "Failed to sync backend document inventory."
+      );
     } finally {
       setLoading(false);
     }
@@ -87,6 +91,10 @@ export default function Home() {
               </p>
               {loading ? (
                 <div className="text-center p-6 text-sm text-zinc-500">Syncing vector state...</div>
+              ) : inventoryError ? (
+                <div className="rounded-lg border border-red-900/60 bg-red-950/30 p-4 text-sm text-red-200">
+                  {inventoryError}
+                </div>
               ) : (
                 <DocumentList
                   documents={documents}
