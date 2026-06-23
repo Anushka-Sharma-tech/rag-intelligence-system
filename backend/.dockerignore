@@ -1,0 +1,12 @@
+.env
+.venv
+__pycache__
+app/**/__pycache__
+chroma_db
+chroma_db_backup
+docs_metadata.json
+uploads
+
+*.pyc
+*.pyo
+*.log

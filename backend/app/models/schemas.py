@@ -4,6 +4,9 @@ from typing import List, Optional
 class DocumentUploadResponse(BaseModel):
     doc_id: str
     filename: str
+    chunks: int
+    created_at: str
+    file_type: str
     chunks_created: int
     message: str
 
