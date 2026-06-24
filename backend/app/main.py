@@ -26,7 +26,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
     # Safely allows all Vercel branch previews AND Railway internal domains
-    allow_origin_regex=r"https://(.*\.vercel\.app|.*\.up\.railway\.app)",
+    allow_origin_regex=r"https://(.*\.vercel\.app|.*\.up\.railway\.app)$",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
