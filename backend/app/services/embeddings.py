@@ -1,35 +1,36 @@
 import os
+import requests
 from typing import List
-from openai import OpenAI
 from fastapi import HTTPException
 
-# Initialize the OpenAI client (automatically uses OPENAI_API_KEY from environment)
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+# Grab the free token from Railway's environment
+HF_TOKEN = os.getenv("HF_TOKEN")
+
+# This is the exact same model you used locally, but hosted on Hugging Face's free servers!
+API_URL = "https://api-inference.huggingface.co/pipeline/feature-extraction/BAAI/bge-small-en-v1.5"
 
 def create_embeddings(texts: List[str]) -> List[List[float]]:
-    """
-    Takes a list of text chunks and returns a list of embedding vectors from OpenAI.
-    """
     if not texts:
         return []
         
+    headers = {"Authorization": f"Bearer {HF_TOKEN}"}
+    
     try:
-        response = client.embeddings.create(
-            input=texts,
-            model="text-embedding-3-small" # Fast, cheap, and very low memory
+        # We use wait_for_model=True in case HF needs a few seconds to wake the free model up
+        response = requests.post(
+            API_URL, 
+            headers=headers, 
+            json={"inputs": texts, "options": {"wait_for_model": True}}
         )
-        # Extract the list of vectors from the API response
-        return [data.embedding for data in response.data]
+        response.raise_for_status() # Check for HTTP errors
+        return response.json()
         
     except Exception as e:
-        print(f"Embedding generation failed: {str(e)}")
+        print(f"Hugging Face API failed: {str(e)}")
         raise HTTPException(
             status_code=500, 
-            detail="Failed to generate embeddings via API. Please check the API key."
+            detail="Failed to generate embeddings via Hugging Face. Check API token."
         )
 
 def create_query_embedding(query: str) -> List[float]:
-    """
-    Helper function to embed a single query string.
-    """
     return create_embeddings([query])[0]
