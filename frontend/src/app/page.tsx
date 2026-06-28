@@ -84,7 +84,8 @@ export default function Home() {
       setDocuments((prev) => prev.filter((d) => d.doc_id !== id));
       setSelectedDocIds((prev) => prev.filter((docId) => docId !== id));
     } catch (err) {
-      alert("Failed to delete document from backend store.");
+      // 🛑 This will now show the actual error sent by FastAPI
+      alert(`Backend Error: ${err instanceof Error ? err.message : "Unknown error"}`);
     }
   };
 
