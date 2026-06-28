@@ -134,7 +134,9 @@ def delete_document(doc_id: str, tenant_id: str) -> bool:
     if metadata[doc_id].get("owner_id") != tenant_id:
         raise HTTPException(status_code=403, detail="Permission denied. You do not own this document.")
         
-    vector_store.delete_document(doc_id)
+    # 🛑 THE FIX: Pass the tenant_id into the vector_store here!
+    vector_store.delete_document(doc_id, tenant_id=tenant_id)
+    
     del metadata[doc_id]
     _save_metadata(metadata)
     return True
