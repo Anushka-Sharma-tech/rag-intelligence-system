@@ -58,12 +58,16 @@ ANSWER:"""
 
 def query_documents(
     question: str,
+    tenant_id: str, # 🛑 UPGRADE: Required tenant parameter added
     doc_ids: Optional[List[str]] = None,
     top_k: int = 5
 ) -> QueryResponse:
     """Core RAG function: embed question → retrieve chunks → generate answer."""
     query_embedding = create_query_embedding(question)
-    results = vector_store.query(query_embedding, top_k=top_k, doc_ids=doc_ids)
+    
+    # 🛑 UPGRADE: Pass tenant_id to filter down to user specific workspace partitions.
+    # If using ChromaDB natively within vector_store, this routes to your `where={"owner_id": tenant_id}` filter.
+    results = vector_store.query(query_embedding, top_k=top_k, doc_ids=doc_ids, tenant_id=tenant_id)
     
     chunks = results["documents"][0]
     metadatas = results["metadatas"][0]
@@ -101,10 +105,12 @@ def query_documents(
         confidence_label=confidence_label
     )
 
-def _get_single_doc_answer(question: str, doc_id: str) -> tuple[str, str]:
+def _get_single_doc_answer(question: str, doc_id: str, tenant_id: str) -> tuple[str, str]:
     """Helper: get answer for one doc and its name."""
     embedding = create_query_embedding(question)
-    results = vector_store.query(embedding, top_k=3, doc_ids=[doc_id])
+    
+    # 🛑 UPGRADE: Inject tenant security constraints here to keep cross-tenant comparison sandboxed
+    results = vector_store.query(embedding, top_k=3, doc_ids=[doc_id], tenant_id=tenant_id)
     
     chunks = results["documents"][0]
     metadatas = results["metadatas"][0]
@@ -122,10 +128,11 @@ def _get_single_doc_answer(question: str, doc_id: str) -> tuple[str, str]:
     source_name = metadatas[0].get("source", doc_id) if metadatas else doc_id
     return answer, source_name
 
-def compare_documents(question: str, doc_id_1: str, doc_id_2: str) -> CompareResponse:
+def compare_documents(question: str, doc_id_1: str, doc_id_2: str, tenant_id: str) -> CompareResponse:
     """Answer the same question from two docs and synthesize the difference."""
-    answer1, name1 = _get_single_doc_answer(question, doc_id_1)
-    answer2, name2 = _get_single_doc_answer(question, doc_id_2)
+    # 🛑 UPGRADE: Forward tenant context to single document retrieval engines
+    answer1, name1 = _get_single_doc_answer(question, doc_id_1, tenant_id)
+    answer2, name2 = _get_single_doc_answer(question, doc_id_2, tenant_id)
     
     synthesis_prompt = f"""Two documents answered this question: "{question}"
 
